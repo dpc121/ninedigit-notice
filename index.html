@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NINEDIGIT Notice Tool</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
+
+<style>
+body{margin:0;font-family:Segoe UI,Arial;background:#0f172a;color:#fff}
+.app{padding:14px}
+h2{text-align:center;font-size:18px;margin:6px 0 12px}
+textarea{width:100%;height:120px;padding:12px;border-radius:10px;border:none}
+.controls{display:flex;gap:10px;margin-top:8px}
+select{flex:1;padding:10px;border-radius:10px;border:none}
+button{width:100%;margin-top:10px;padding:14px;font-size:16px;font-weight:700;border:none;border-radius:10px;background:#22c55e;color:#000}
+.output{margin-top:12px;padding:14px;background:#020617;border-radius:10px;white-space:pre-wrap;line-height:1.6}
+.footer{text-align:center;margin-top:8px;font-size:12px;opacity:.7}
+</style>
+</head>
+
+<body>
+<div class="app">
+<h2>📢 NINEDIGIT Notice Generator</h2>
+
+<textarea id="input" placeholder="Bas normal likhiye..."></textarea>
+
+<div class="controls">
+<select id="type">
+<option value="alert">🚨 Alert</option>
+<option value="resume">✅ Service Resumed</option>
+</select>
+<select id="length">
+<option value="short">Short</option>
+<option value="detailed">Detailed</option>
+</select>
+</div>
+
+<button onclick="generate()">Format & Copy</button>
+<div class="output" id="output"></div>
+<div class="footer">Text-only | WhatsApp Channel Ready</div>
+</div>
+
+<script>
+function detectService(t){
+t=t.toLowerCase();
+if(t.includes("puc")) return {c:"DL SERVICES",n:"PUC (Pollution Under Control)"};
+if(t.includes("dl")) return {c:"DL SERVICES",n:"Driving Licence"};
+if(t.includes("rc")) return {c:"VEHICLE SERVICES",n:"Registration Certificate"};
+if(t.includes("voter")) return {c:"VOTER SERVICES",n:"Voter ID / EPIC"};
+if(t.includes("aadhaar")) return {c:"AADHAAR SERVICES",n:"Aadhaar"};
+if(t.includes("pan")) return {c:"PAN SERVICES",n:"PAN Card"};
+return {c:"GENERAL SERVICES",n:"Service"};
+}
+
+function generate(){
+let raw=input.value.trim(); if(!raw) return;
+let svc=detectService(raw);
+let type=document.getElementById("type").value;
+let len=document.getElementById("length").value;
+
+let head=type==="alert"?"🚨 OFFICIAL NOTICE":"✅ SERVICE RESUMED NOTICE";
+let body=type==="alert"
+?(len==="short"
+?`• ${svc.n} service temporary down hai.\n  Kindly wait kijiye, service resume hote hi available ho jayega.`
+:`• ${svc.n} service asthayi roop se uplabdh nahi hai.\n• Technical issue ke karan delay ho raha hai.\n• Resume hone par update diya jayega.`)
+:(len==="short"
+?`• ${svc.n} service dobara start ho chuki hai.\n  Ab users apply kar sakte hain.`
+:`• ${svc.n} service resume ho chuki hai.\n• Normal roop se use ki ja sakti hai.\n• Thodi delay possible hai.`);
+
+let d=new Date().toLocaleDateString("en-GB");
+let out=`${head}\n${svc.c} – ${svc.n}\n\n${body}\n\nDate: ${d}\n— Admin | Official Channel – NINEDIGIT`;
+output.innerText=out;
+navigator.clipboard.writeText(out);
+}
+
+// Service worker register
+if('serviceWorker' in navigator){
+navigator.serviceWorker.register('service-worker.js');
+}
+</script>
+</body>
+</html>
