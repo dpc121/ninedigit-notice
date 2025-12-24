@@ -3,44 +3,38 @@
 <head>
 <meta charset="UTF-8">
 
-<!-- 🔥 MUST FOR MOBILE & PWA -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- 🔥 PWA + NO CACHE -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 
 <title>NINEDIGIT Notice App</title>
 
-<!-- PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Notice App">
 
 <style>
 *{box-sizing:border-box;}
 body{
   margin:0;
-  font-family: system-ui, -apple-system, Arial, sans-serif;
+  font-family: system-ui, Arial, sans-serif;
   background:#0f172a;
   color:#fff;
-  overscroll-behavior:none;
 }
-
 header{
   background:#020617;
   padding:14px;
   text-align:center;
-  font-size:18px;
   font-weight:700;
 }
-
 .container{
   padding:12px;
   max-width:600px;
   margin:auto;
 }
-
-/* Mobile-first inputs */
-textarea, input, select{
+textarea,select,input{
   width:100%;
   padding:14px;
   border-radius:14px;
@@ -48,9 +42,7 @@ textarea, input, select{
   font-size:16px;
   margin-top:10px;
 }
-
 textarea{min-height:120px;}
-
 button{
   width:100%;
   padding:15px;
@@ -60,18 +52,12 @@ button{
   font-weight:700;
   margin-top:10px;
 }
-
 .btn-green{background:#22c55e;}
 .btn-blue{background:#38bdf8;}
 .btn-red{background:#ef4444;}
 .btn-purple{background:#a855f7;}
-
-.row{
-  display:flex;
-  gap:8px;
-}
-.row > *{flex:1;}
-
+.row{display:flex;gap:8px;}
+.row>*{flex:1;}
 .output{
   background:#020617;
   border-radius:16px;
@@ -79,20 +65,12 @@ button{
   margin-top:14px;
   white-space:pre-line;
 }
-
-/* Preview mobile vertical */
-.preview{
-  display:none;
-  flex-direction:column;
-  gap:10px;
-  margin-top:14px;
-}
+.preview{display:none;gap:10px;margin-top:14px;}
 .preview-box{
   background:#020617;
-  border-radius:16px;
+  border-radius:14px;
   padding:12px;
 }
-
 .footer{
   text-align:center;
   opacity:.6;
@@ -111,34 +89,37 @@ button{
 <textarea id="noticeInput" placeholder="Yahan notice likhiye..."></textarea>
 
 <div class="row">
-  <select id="rewriteTone">
-    <option value="strict">🧠 Strict</option>
-    <option value="polite">🙏 Polite</option>
-    <option value="friendly">😊 Friendly</option>
-  </select>
-  <button class="btn-purple" onclick="rewritePreview()">✨ Rewrite</button>
+<select id="rewriteTone">
+  <option value="strict">🧠 Strict</option>
+  <option value="polite">🙏 Polite</option>
+  <option value="friendly">😊 Friendly</option>
+</select>
+<button class="btn-purple" onclick="rewrite()">✨ Rewrite</button>
 </div>
 
 <div class="preview" id="preview">
-  <div class="preview-box" id="beforeBox"></div>
-  <div class="preview-box" id="afterBox"></div>
+  <div class="preview-box" id="before"></div>
+  <div class="preview-box" id="after"></div>
 </div>
 
 <button class="btn-green" onclick="generate()">Generate Notice</button>
 <button class="btn-blue" onclick="share()">📤 WhatsApp</button>
+<button class="btn-red" onclick="clearAll()">🧹 Clear All</button>
 
 <div class="output" id="output"></div>
 
-<div class="footer">Installable • Offline • App-like</div>
+<div class="footer">Installable • Offline • Auto Update</div>
 </div>
 
 <script>
-// Register Service Worker
+/* 🔥 SAFE SERVICE WORKER REGISTER */
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
+  navigator.serviceWorker.register("sw.js").then(reg=>{
+    reg.update();
+  });
 }
 
-function rewritePreview(){
+function rewrite(){
   const t=noticeInput.value.trim();
   if(!t){alert("Text likhiye");return;}
   const tone=rewriteTone.value;
@@ -147,19 +128,31 @@ function rewritePreview(){
   if(tone==="polite") r="Aapse nivedan hai: "+t;
   if(tone==="friendly") r="Jankari ke liye: "+t;
   preview.style.display="flex";
-  beforeBox.innerText="Before:\n"+t;
-  afterBox.innerText="After:\n"+r;
+  before.innerText="Before:\n"+t;
+  after.innerText="After:\n"+r;
   noticeInput.value=r;
 }
 
 function generate(){
   const t=noticeInput.value.trim();
-  output.innerText="🚨 OFFICIAL NOTICE\n\n• "+t+"\n\n— NINEDIGIT";
+  if(!t)return;
+  output.innerText=
+`🚨 OFFICIAL NOTICE
+
+• ${t}
+
+— Admin | NINEDIGIT`;
 }
 
 function share(){
   if(!output.innerText)return;
   window.open("https://wa.me/?text="+encodeURIComponent(output.innerText));
+}
+
+function clearAll(){
+  noticeInput.value="";
+  output.innerText="";
+  preview.style.display="none";
 }
 </script>
 
