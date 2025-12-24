@@ -2,40 +2,55 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+
+<!-- 🔥 MOST IMPORTANT FOR MOBILE -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>NINEDIGIT Notice Generator</title>
 
 <style>
+*{ box-sizing:border-box; }
+
 body{
   margin:0;
-  font-family: Arial, sans-serif;
+  font-family: system-ui, -apple-system, Arial, sans-serif;
   background:#0f172a;
   color:#fff;
 }
+
 header{
   background:#020617;
-  padding:14px;
-  font-size:20px;
+  padding:14px 10px;
+  font-size:18px;
   text-align:center;
-  font-weight:bold;
+  font-weight:700;
 }
-.container{ padding:15px; }
 
-textarea,input,select{
-  width:100%;
-  padding:10px;
-  border-radius:10px;
-  border:none;
-  font-size:15px;
-  margin-top:8px;
+.container{
+  padding:12px;
+  max-width:720px;
+  margin:auto;
 }
+
+textarea, input, select{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:none;
+  font-size:16px;
+  margin-top:10px;
+}
+
+textarea{ min-height:120px; }
 
 button{
-  margin-top:8px;
-  padding:12px;
+  width:100%;
+  margin-top:10px;
+  padding:15px;
   border:none;
-  border-radius:10px;
-  font-size:14px;
-  font-weight:bold;
+  border-radius:16px;
+  font-size:16px;
+  font-weight:700;
   cursor:pointer;
 }
 
@@ -47,53 +62,64 @@ button{
 .row{
   display:flex;
   gap:8px;
+  flex-wrap:wrap;
+}
+.row > *{
+  flex:1 1 48%;
 }
 
+/* Output */
 .output{
-  margin-top:12px;
+  margin-top:14px;
   background:#020617;
-  border-radius:10px;
-  padding:12px;
+  border-radius:16px;
+  padding:14px;
   white-space:pre-line;
+  font-size:15px;
 }
 
-/* Preview */
+/* Rewrite Preview */
 .preview{
-  margin-top:12px;
   display:none;
+  margin-top:14px;
   gap:10px;
+  flex-direction:column;
 }
 .preview-box{
-  flex:1;
   background:#020617;
-  border-radius:10px;
-  padding:10px;
+  border-radius:16px;
+  padding:12px;
   font-size:14px;
-  white-space:pre-line;
 }
 .preview-title{
-  font-weight:bold;
-  margin-bottom:6px;
+  font-weight:700;
   opacity:.8;
+  margin-bottom:6px;
 }
 
 /* History */
 .history{
-  margin-top:15px;
+  margin-top:18px;
 }
 .history-item{
   background:#020617;
-  padding:10px;
-  border-radius:8px;
-  margin-bottom:6px;
+  padding:12px;
+  border-radius:14px;
+  margin-bottom:8px;
   font-size:14px;
   cursor:pointer;
+}
+
+/* Desktop enhancement */
+@media (min-width:768px){
+  .preview{ flex-direction:row; }
+  .preview-box{ flex:1; }
 }
 
 .footer{
   text-align:center;
   opacity:.7;
-  margin-top:10px;
+  margin:14px 0;
   font-size:13px;
 }
 </style>
@@ -105,16 +131,17 @@ button{
 
 <div class="container">
 
-<!-- Language -->
+<!-- 🌐 Language -->
 <select id="langSwitch" onchange="switchLang()">
   <option value="en">🌐 English</option>
   <option value="hi">🌐 Hindi</option>
   <option value="hinglish">🌐 Hinglish</option>
 </select>
 
+<!-- ✍️ Input -->
 <textarea id="noticeInput" placeholder="Type notice here..."></textarea>
 
-<!-- Rewrite Controls -->
+<!-- 🧠 Rewrite -->
 <div class="row">
   <select id="rewriteTone">
     <option value="strict">🧠 Strict</option>
@@ -124,7 +151,7 @@ button{
   <button class="btn-purple" onclick="showRewritePreview()">✨ Rewrite Preview</button>
 </div>
 
-<!-- Preview -->
+<!-- 🔄 Preview -->
 <div class="preview" id="previewBox">
   <div class="preview-box">
     <div class="preview-title">Before</div>
@@ -137,11 +164,11 @@ button{
 </div>
 
 <div class="row" id="previewActions" style="display:none">
-  <button class="btn-green" onclick="applyRewrite()">✔ Apply Rewrite</button>
+  <button class="btn-green" onclick="applyRewrite()">✔ Apply</button>
   <button class="btn-red" onclick="cancelRewrite()">❌ Cancel</button>
 </div>
 
-<!-- Notice Type -->
+<!-- 📢 Notice Type -->
 <select id="noticeType">
   <option value="alert">🚨 Alert</option>
   <option value="resume">▶ Service Resume</option>
@@ -153,12 +180,12 @@ button{
 </select>
 
 <button class="btn-green" onclick="generateNotice()">Format • Copy • Save</button>
-<button class="btn-blue" onclick="shareWhatsApp()">📤 WhatsApp</button>
-<button class="btn-red" onclick="clearAllData()">🧹 Clear All</button>
+<button class="btn-blue" onclick="shareWhatsApp()">📤 WhatsApp Share</button>
+<button class="btn-red" onclick="clearAllData()">🧹 Clear All Data</button>
 
 <div class="output" id="outputBox"></div>
 
-<!-- History -->
+<!-- 🕘 History -->
 <div class="history">
 <h3>🕘 Notice History</h3>
 <input type="text" id="searchBox" placeholder="🔍 Search history..." oninput="loadHistory()">
@@ -166,7 +193,7 @@ button{
 <div id="historyList"></div>
 </div>
 
-<div class="footer">AI-Style Rewrite • Preview Compare • WhatsApp Ready</div>
+<div class="footer">Mobile-First • AI-Style Rewrite • WhatsApp Ready</div>
 </div>
 
 <script>
@@ -174,29 +201,11 @@ const historyKey="ninedigit_notice_history";
 let currentLang="en";
 let rewrittenText="";
 
-// -------- LANGUAGE LABELS --------
+/* 🌐 Language Labels */
 const labels={
-en:{
-title:"📢 NINEDIGIT Notice Generator",
-placeholder:"Type notice here...",
-heading:"OFFICIAL NOTICE",
-dept:"DL SERVICES – PUC (Pollution Under Control)",
-admin:"Admin | Official Channel – NINEDIGIT"
-},
-hi:{
-title:"📢 नाइनडिजिट नोटिस जनरेटर",
-placeholder:"यहाँ नोटिस लिखें...",
-heading:"आधिकारिक सूचना",
-dept:"डीएल सेवाएँ – पीयूसी",
-admin:"एडमिन | आधिकारिक चैनल – NINEDIGIT"
-},
-hinglish:{
-title:"📢 NINEDIGIT Notice Generator",
-placeholder:"Yahan notice ka text likhiye...",
-heading:"OFFICIAL NOTICE",
-dept:"DL Services – PUC (Pollution Under Control)",
-admin:"Admin | Official Channel – NINEDIGIT"
-}
+en:{title:"📢 NINEDIGIT Notice Generator",placeholder:"Type notice here...",heading:"OFFICIAL NOTICE",dept:"DL SERVICES – PUC (Pollution Under Control)",admin:"Admin | Official Channel – NINEDIGIT"},
+hi:{title:"📢 नाइनडिजिट नोटिस जनरेटर",placeholder:"यहाँ नोटिस लिखें...",heading:"आधिकारिक सूचना",dept:"डीएल सेवाएँ – पीयूसी",admin:"एडमिन | आधिकारिक चैनल – NINEDIGIT"},
+hinglish:{title:"📢 NINEDIGIT Notice Generator",placeholder:"Yahan notice ka text likhiye...",heading:"OFFICIAL NOTICE",dept:"DL Services – PUC (Pollution Under Control)",admin:"Admin | Official Channel – NINEDIGIT"}
 };
 
 function switchLang(){
@@ -205,84 +214,57 @@ title.innerText=labels[currentLang].title;
 noticeInput.placeholder=labels[currentLang].placeholder;
 }
 
-// -------- AI-STYLE REWRITE (RULE-BASED) --------
+/* 🧠 Rewrite Logic */
 function rewriteText(text,tone){
-let t=text;
-
-if(tone==="strict"){
-t="Kindly note that "+t.replace("milega","उपलब्ध होगा").replace("abhi","फिलहाल");
-}
-if(tone==="polite"){
-t="Aapse nivedan hai ki dhyan dein: "+t;
-}
-if(tone==="friendly"){
-t="Jankari ke liye bataya ja raha hai: "+t;
-}
-return t;
+if(tone==="strict") return "Kindly note that "+text;
+if(tone==="polite") return "Aapse nivedan hai ki dhyan dein: "+text;
+return "Jankari ke liye bataya ja raha hai: "+text;
 }
 
 function showRewritePreview(){
-const original=noticeInput.value.trim();
-if(!original){alert("Text likhiye");return;}
-
-const tone=rewriteTone.value;
-rewrittenText=rewriteText(original,tone);
-
-beforeText.innerText=original;
+const t=noticeInput.value.trim();
+if(!t){alert("Text likhiye");return;}
+rewrittenText=rewriteText(t,rewriteTone.value);
+beforeText.innerText=t;
 afterText.innerText=rewrittenText;
-
 previewBox.style.display="flex";
 previewActions.style.display="flex";
 }
-
 function applyRewrite(){
 noticeInput.value=rewrittenText;
 hidePreview();
 }
-
-function cancelRewrite(){
-hidePreview();
-}
-
+function cancelRewrite(){ hidePreview(); }
 function hidePreview(){
 previewBox.style.display="none";
 previewActions.style.display="none";
 }
 
-// -------- NOTICE GENERATION --------
+/* 📢 Notice */
 function getIcon(t){
-return{
-alert:"🚨",resume:"▶",info:"ℹ️",
-happy:"😊",request:"🙏",sorry:"😔",warning:"⚠️"
-}[t];
+return{alert:"🚨",resume:"▶",info:"ℹ️",happy:"😊",request:"🙏",sorry:"😔",warning:"⚠️"}[t];
 }
-
 function generateNotice(){
-const text=noticeInput.value.trim();
-if(!text){alert("Notice text required");return;}
-
+const t=noticeInput.value.trim();
+if(!t){alert("Notice text required");return;}
 const L=labels[currentLang];
-const icon=getIcon(noticeType.value);
-const date=new Date().toLocaleDateString("en-GB");
-
 const notice=`
-${icon} ${L.heading}
+${getIcon(noticeType.value)} ${L.heading}
 
 ${L.dept}
 
-• ${text}
+• ${t}
 
-Date: ${date}
+Date: ${new Date().toLocaleDateString("en-GB")}
 — ${L.admin}
 `.trim();
-
 outputBox.innerText=notice;
 navigator.clipboard.writeText(notice);
 saveHistory(notice);
 loadHistory();
 }
 
-// -------- HISTORY --------
+/* 🕘 History */
 function saveHistory(n){
 let h=JSON.parse(localStorage.getItem(historyKey))||[];
 h.unshift(n); h=h.slice(0,20);
@@ -296,18 +278,12 @@ h.filter(x=>x.toLowerCase().includes(q)).forEach(n=>{
 let d=document.createElement("div");
 d.className="history-item";
 d.innerText=n.split("\n")[0]+" ...";
-d.onclick=()=>{
-outputBox.innerText=n;
-navigator.clipboard.writeText(n);
-};
+d.onclick=()=>{outputBox.innerText=n;navigator.clipboard.writeText(n);};
 historyList.appendChild(d);
 });
 }
 function clearHistory(){
-if(confirm("Clear history?")){
-localStorage.removeItem(historyKey);
-loadHistory();
-}
+if(confirm("Clear history?")){localStorage.removeItem(historyKey);loadHistory();}
 }
 function clearAllData(){
 if(confirm("Clear ALL data?")){
@@ -321,7 +297,6 @@ function shareWhatsApp(){
 if(!outputBox.innerText){alert("Generate notice first");return;}
 window.open("https://wa.me/?text="+encodeURIComponent(outputBox.innerText));
 }
-
 loadHistory();
 </script>
 
