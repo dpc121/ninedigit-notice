@@ -3,35 +3,43 @@
 <head>
 <meta charset="UTF-8">
 
-<!-- 🔥 MOST IMPORTANT FOR MOBILE -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- 🔥 MUST FOR MOBILE & PWA -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<title>NINEDIGIT Notice Generator</title>
+<title>NINEDIGIT Notice App</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#020617">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Notice App">
 
 <style>
-*{ box-sizing:border-box; }
-
+*{box-sizing:border-box;}
 body{
   margin:0;
   font-family: system-ui, -apple-system, Arial, sans-serif;
   background:#0f172a;
   color:#fff;
+  overscroll-behavior:none;
 }
 
 header{
   background:#020617;
-  padding:14px 10px;
-  font-size:18px;
+  padding:14px;
   text-align:center;
+  font-size:18px;
   font-weight:700;
 }
 
 .container{
   padding:12px;
-  max-width:720px;
+  max-width:600px;
   margin:auto;
 }
 
+/* Mobile-first inputs */
 textarea, input, select{
   width:100%;
   padding:14px;
@@ -41,263 +49,118 @@ textarea, input, select{
   margin-top:10px;
 }
 
-textarea{ min-height:120px; }
+textarea{min-height:120px;}
 
 button{
   width:100%;
-  margin-top:10px;
   padding:15px;
   border:none;
   border-radius:16px;
   font-size:16px;
   font-weight:700;
-  cursor:pointer;
+  margin-top:10px;
 }
 
-.btn-green{ background:#22c55e; }
-.btn-blue{ background:#38bdf8; }
-.btn-red{ background:#ef4444; }
-.btn-purple{ background:#a855f7; }
+.btn-green{background:#22c55e;}
+.btn-blue{background:#38bdf8;}
+.btn-red{background:#ef4444;}
+.btn-purple{background:#a855f7;}
 
 .row{
   display:flex;
   gap:8px;
-  flex-wrap:wrap;
 }
-.row > *{
-  flex:1 1 48%;
-}
+.row > *{flex:1;}
 
-/* Output */
 .output{
-  margin-top:14px;
   background:#020617;
   border-radius:16px;
   padding:14px;
+  margin-top:14px;
   white-space:pre-line;
-  font-size:15px;
 }
 
-/* Rewrite Preview */
+/* Preview mobile vertical */
 .preview{
   display:none;
-  margin-top:14px;
-  gap:10px;
   flex-direction:column;
+  gap:10px;
+  margin-top:14px;
 }
 .preview-box{
   background:#020617;
   border-radius:16px;
   padding:12px;
-  font-size:14px;
-}
-.preview-title{
-  font-weight:700;
-  opacity:.8;
-  margin-bottom:6px;
-}
-
-/* History */
-.history{
-  margin-top:18px;
-}
-.history-item{
-  background:#020617;
-  padding:12px;
-  border-radius:14px;
-  margin-bottom:8px;
-  font-size:14px;
-  cursor:pointer;
-}
-
-/* Desktop enhancement */
-@media (min-width:768px){
-  .preview{ flex-direction:row; }
-  .preview-box{ flex:1; }
 }
 
 .footer{
   text-align:center;
-  opacity:.7;
-  margin:14px 0;
-  font-size:13px;
+  opacity:.6;
+  font-size:12px;
+  margin:12px 0;
 }
 </style>
 </head>
 
 <body>
 
-<header id="title">📢 NINEDIGIT Notice Generator</header>
+<header>📢 NINEDIGIT Notice App</header>
 
 <div class="container">
 
-<!-- 🌐 Language -->
-<select id="langSwitch" onchange="switchLang()">
-  <option value="en">🌐 English</option>
-  <option value="hi">🌐 Hindi</option>
-  <option value="hinglish">🌐 Hinglish</option>
-</select>
+<textarea id="noticeInput" placeholder="Yahan notice likhiye..."></textarea>
 
-<!-- ✍️ Input -->
-<textarea id="noticeInput" placeholder="Type notice here..."></textarea>
-
-<!-- 🧠 Rewrite -->
 <div class="row">
   <select id="rewriteTone">
     <option value="strict">🧠 Strict</option>
     <option value="polite">🙏 Polite</option>
     <option value="friendly">😊 Friendly</option>
   </select>
-  <button class="btn-purple" onclick="showRewritePreview()">✨ Rewrite Preview</button>
+  <button class="btn-purple" onclick="rewritePreview()">✨ Rewrite</button>
 </div>
 
-<!-- 🔄 Preview -->
-<div class="preview" id="previewBox">
-  <div class="preview-box">
-    <div class="preview-title">Before</div>
-    <div id="beforeText"></div>
-  </div>
-  <div class="preview-box">
-    <div class="preview-title">After</div>
-    <div id="afterText"></div>
-  </div>
+<div class="preview" id="preview">
+  <div class="preview-box" id="beforeBox"></div>
+  <div class="preview-box" id="afterBox"></div>
 </div>
 
-<div class="row" id="previewActions" style="display:none">
-  <button class="btn-green" onclick="applyRewrite()">✔ Apply</button>
-  <button class="btn-red" onclick="cancelRewrite()">❌ Cancel</button>
-</div>
+<button class="btn-green" onclick="generate()">Generate Notice</button>
+<button class="btn-blue" onclick="share()">📤 WhatsApp</button>
 
-<!-- 📢 Notice Type -->
-<select id="noticeType">
-  <option value="alert">🚨 Alert</option>
-  <option value="resume">▶ Service Resume</option>
-  <option value="info">ℹ️ Info</option>
-  <option value="happy">😊 Positive</option>
-  <option value="request">🙏 Request</option>
-  <option value="sorry">😔 Apology</option>
-  <option value="warning">⚠️ Warning</option>
-</select>
+<div class="output" id="output"></div>
 
-<button class="btn-green" onclick="generateNotice()">Format • Copy • Save</button>
-<button class="btn-blue" onclick="shareWhatsApp()">📤 WhatsApp Share</button>
-<button class="btn-red" onclick="clearAllData()">🧹 Clear All Data</button>
-
-<div class="output" id="outputBox"></div>
-
-<!-- 🕘 History -->
-<div class="history">
-<h3>🕘 Notice History</h3>
-<input type="text" id="searchBox" placeholder="🔍 Search history..." oninput="loadHistory()">
-<button class="btn-red" onclick="clearHistory()">🗑️ Clear History</button>
-<div id="historyList"></div>
-</div>
-
-<div class="footer">Mobile-First • AI-Style Rewrite • WhatsApp Ready</div>
+<div class="footer">Installable • Offline • App-like</div>
 </div>
 
 <script>
-const historyKey="ninedigit_notice_history";
-let currentLang="en";
-let rewrittenText="";
-
-/* 🌐 Language Labels */
-const labels={
-en:{title:"📢 NINEDIGIT Notice Generator",placeholder:"Type notice here...",heading:"OFFICIAL NOTICE",dept:"DL SERVICES – PUC (Pollution Under Control)",admin:"Admin | Official Channel – NINEDIGIT"},
-hi:{title:"📢 नाइनडिजिट नोटिस जनरेटर",placeholder:"यहाँ नोटिस लिखें...",heading:"आधिकारिक सूचना",dept:"डीएल सेवाएँ – पीयूसी",admin:"एडमिन | आधिकारिक चैनल – NINEDIGIT"},
-hinglish:{title:"📢 NINEDIGIT Notice Generator",placeholder:"Yahan notice ka text likhiye...",heading:"OFFICIAL NOTICE",dept:"DL Services – PUC (Pollution Under Control)",admin:"Admin | Official Channel – NINEDIGIT"}
-};
-
-function switchLang(){
-currentLang=langSwitch.value;
-title.innerText=labels[currentLang].title;
-noticeInput.placeholder=labels[currentLang].placeholder;
+// Register Service Worker
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
 }
 
-/* 🧠 Rewrite Logic */
-function rewriteText(text,tone){
-if(tone==="strict") return "Kindly note that "+text;
-if(tone==="polite") return "Aapse nivedan hai ki dhyan dein: "+text;
-return "Jankari ke liye bataya ja raha hai: "+text;
+function rewritePreview(){
+  const t=noticeInput.value.trim();
+  if(!t){alert("Text likhiye");return;}
+  const tone=rewriteTone.value;
+  let r=t;
+  if(tone==="strict") r="Kindly note that "+t;
+  if(tone==="polite") r="Aapse nivedan hai: "+t;
+  if(tone==="friendly") r="Jankari ke liye: "+t;
+  preview.style.display="flex";
+  beforeBox.innerText="Before:\n"+t;
+  afterBox.innerText="After:\n"+r;
+  noticeInput.value=r;
 }
 
-function showRewritePreview(){
-const t=noticeInput.value.trim();
-if(!t){alert("Text likhiye");return;}
-rewrittenText=rewriteText(t,rewriteTone.value);
-beforeText.innerText=t;
-afterText.innerText=rewrittenText;
-previewBox.style.display="flex";
-previewActions.style.display="flex";
-}
-function applyRewrite(){
-noticeInput.value=rewrittenText;
-hidePreview();
-}
-function cancelRewrite(){ hidePreview(); }
-function hidePreview(){
-previewBox.style.display="none";
-previewActions.style.display="none";
+function generate(){
+  const t=noticeInput.value.trim();
+  output.innerText="🚨 OFFICIAL NOTICE\n\n• "+t+"\n\n— NINEDIGIT";
 }
 
-/* 📢 Notice */
-function getIcon(t){
-return{alert:"🚨",resume:"▶",info:"ℹ️",happy:"😊",request:"🙏",sorry:"😔",warning:"⚠️"}[t];
+function share(){
+  if(!output.innerText)return;
+  window.open("https://wa.me/?text="+encodeURIComponent(output.innerText));
 }
-function generateNotice(){
-const t=noticeInput.value.trim();
-if(!t){alert("Notice text required");return;}
-const L=labels[currentLang];
-const notice=`
-${getIcon(noticeType.value)} ${L.heading}
-
-${L.dept}
-
-• ${t}
-
-Date: ${new Date().toLocaleDateString("en-GB")}
-— ${L.admin}
-`.trim();
-outputBox.innerText=notice;
-navigator.clipboard.writeText(notice);
-saveHistory(notice);
-loadHistory();
-}
-
-/* 🕘 History */
-function saveHistory(n){
-let h=JSON.parse(localStorage.getItem(historyKey))||[];
-h.unshift(n); h=h.slice(0,20);
-localStorage.setItem(historyKey,JSON.stringify(h));
-}
-function loadHistory(){
-const q=searchBox.value.toLowerCase();
-const h=JSON.parse(localStorage.getItem(historyKey))||[];
-historyList.innerHTML="";
-h.filter(x=>x.toLowerCase().includes(q)).forEach(n=>{
-let d=document.createElement("div");
-d.className="history-item";
-d.innerText=n.split("\n")[0]+" ...";
-d.onclick=()=>{outputBox.innerText=n;navigator.clipboard.writeText(n);};
-historyList.appendChild(d);
-});
-}
-function clearHistory(){
-if(confirm("Clear history?")){localStorage.removeItem(historyKey);loadHistory();}
-}
-function clearAllData(){
-if(confirm("Clear ALL data?")){
-localStorage.clear();
-noticeInput.value="";
-outputBox.innerText="";
-loadHistory();
-}
-}
-function shareWhatsApp(){
-if(!outputBox.innerText){alert("Generate notice first");return;}
-window.open("https://wa.me/?text="+encodeURIComponent(outputBox.innerText));
-}
-loadHistory();
 </script>
 
 </body>
