@@ -3,23 +3,20 @@
 <head>
 <meta charset="UTF-8">
 
-<!-- 🔥 PWA + NO CACHE -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
+<title>NINEDIGIT Notice Generator</title>
 
-<title>NINEDIGIT Notice App</title>
-
+<!-- PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <style>
-*{box-sizing:border-box;}
+*{box-sizing:border-box}
 body{
   margin:0;
-  font-family: system-ui, Arial, sans-serif;
+  font-family:system-ui,Arial;
   background:#0f172a;
   color:#fff;
 }
@@ -31,7 +28,7 @@ header{
 }
 .container{
   padding:12px;
-  max-width:600px;
+  max-width:650px;
   margin:auto;
 }
 textarea,select,input{
@@ -42,35 +39,49 @@ textarea,select,input{
   font-size:16px;
   margin-top:10px;
 }
-textarea{min-height:120px;}
+textarea{min-height:120px}
 button{
   width:100%;
-  padding:15px;
+  padding:14px;
   border:none;
-  border-radius:16px;
+  border-radius:14px;
   font-size:16px;
   font-weight:700;
   margin-top:10px;
 }
-.btn-green{background:#22c55e;}
-.btn-blue{background:#38bdf8;}
-.btn-red{background:#ef4444;}
-.btn-purple{background:#a855f7;}
-.row{display:flex;gap:8px;}
-.row>*{flex:1;}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+
+.btn-green{background:#22c55e}
+.btn-blue{background:#38bdf8}
+.btn-red{background:#ef4444}
+.btn-purple{background:#a855f7}
+
 .output{
   background:#020617;
-  border-radius:16px;
+  border-radius:14px;
   padding:14px;
   margin-top:14px;
   white-space:pre-line;
 }
-.preview{display:none;gap:10px;margin-top:14px;}
+
+.preview{display:none;gap:10px;margin-top:14px}
 .preview-box{
   background:#020617;
   border-radius:14px;
   padding:12px;
 }
+
+.history{margin-top:16px}
+.history-item{
+  background:#020617;
+  padding:10px;
+  border-radius:10px;
+  margin-bottom:6px;
+  font-size:14px;
+  cursor:pointer;
+}
+
 .footer{
   text-align:center;
   opacity:.6;
@@ -82,11 +93,21 @@ button{
 
 <body>
 
-<header>📢 NINEDIGIT Notice App</header>
+<header>📢 NINEDIGIT Notice Generator</header>
 
 <div class="container">
 
 <textarea id="noticeInput" placeholder="Yahan notice likhiye..."></textarea>
+
+<select id="noticeType">
+  <option value="alert">🚨 Alert</option>
+  <option value="resume">▶ Service Resume</option>
+  <option value="info">ℹ️ Info</option>
+  <option value="happy">😊 Positive</option>
+  <option value="request">🙏 Request</option>
+  <option value="sorry">😔 Apology</option>
+  <option value="warning">⚠️ Warning</option>
+</select>
 
 <div class="row">
 <select id="rewriteTone">
@@ -94,59 +115,99 @@ button{
   <option value="polite">🙏 Polite</option>
   <option value="friendly">😊 Friendly</option>
 </select>
-<button class="btn-purple" onclick="rewrite()">✨ Rewrite</button>
+<button class="btn-purple" onclick="rewritePreview()">✨ Rewrite Preview</button>
 </div>
 
 <div class="preview" id="preview">
-  <div class="preview-box" id="before"></div>
-  <div class="preview-box" id="after"></div>
+  <div class="preview-box" id="beforeBox"></div>
+  <div class="preview-box" id="afterBox"></div>
 </div>
 
-<button class="btn-green" onclick="generate()">Generate Notice</button>
-<button class="btn-blue" onclick="share()">📤 WhatsApp</button>
+<button class="btn-green" onclick="generate()">Format • Copy • Save</button>
+
+<div class="row">
+<button class="btn-blue" onclick="shareChannel()">📤 WhatsApp Channel</button>
 <button class="btn-red" onclick="clearAll()">🧹 Clear All</button>
+</div>
 
 <div class="output" id="output"></div>
 
-<div class="footer">Installable • Offline • Auto Update</div>
+<div class="history">
+<h3>🕘 Notice History</h3>
+<input type="text" id="search" placeholder="🔍 Search history..." oninput="loadHistory()">
+<button class="btn-red" onclick="clearHistory()">🗑️ Clear History</button>
+<div id="historyList"></div>
+</div>
+
+<div class="footer">WhatsApp Channel Ready • Installable PWA</div>
 </div>
 
 <script>
-/* 🔥 SAFE SERVICE WORKER REGISTER */
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js").then(reg=>{
-    reg.update();
-  });
+/* PWA safe register */
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").then(r=>r.update());
 }
 
-function rewrite(){
+const KEY="ninedigit_history";
+const CHANNEL_URL="https://whatsapp.com/channel/0029Vaz55kDLo4hcKwcuqi0b";
+
+function icon(t){
+  return {
+    alert:"🚨",resume:"▶",info:"ℹ️",happy:"😊",
+    request:"🙏",sorry:"😔",warning:"⚠️"
+  }[t];
+}
+
+function rewritePreview(){
   const t=noticeInput.value.trim();
-  if(!t){alert("Text likhiye");return;}
-  const tone=rewriteTone.value;
+  if(!t) return alert("Text likhiye");
   let r=t;
+  const tone=rewriteTone.value;
   if(tone==="strict") r="Kindly note that "+t;
   if(tone==="polite") r="Aapse nivedan hai: "+t;
   if(tone==="friendly") r="Jankari ke liye: "+t;
   preview.style.display="flex";
-  before.innerText="Before:\n"+t;
-  after.innerText="After:\n"+r;
-  noticeInput.value=r;
+  beforeBox.innerText="Before:\n"+t;
+  afterBox.innerText="After:\n"+r;
 }
 
 function generate(){
   const t=noticeInput.value.trim();
-  if(!t)return;
-  output.innerText=
-`🚨 OFFICIAL NOTICE
-
-• ${t}
-
-— Admin | NINEDIGIT`;
+  if(!t) return;
+  const msg=`${icon(noticeType.value)} OFFICIAL NOTICE\n\n• ${t}\n\n— Admin | NINEDIGIT`;
+  output.innerText=msg;
+  navigator.clipboard.writeText(msg);
+  save(msg);
+  loadHistory();
 }
 
-function share(){
-  if(!output.innerText)return;
-  window.open("https://wa.me/?text="+encodeURIComponent(output.innerText));
+function save(m){
+  let h=JSON.parse(localStorage.getItem(KEY))||[];
+  h.unshift(m); h=h.slice(0,20);
+  localStorage.setItem(KEY,JSON.stringify(h));
+}
+
+function loadHistory(){
+  const q=search.value.toLowerCase();
+  const h=JSON.parse(localStorage.getItem(KEY))||[];
+  historyList.innerHTML="";
+  h.filter(x=>x.toLowerCase().includes(q)).forEach(n=>{
+    let d=document.createElement("div");
+    d.className="history-item";
+    d.innerText=n.split("\n")[0]+" ...";
+    d.onclick=()=>{
+      output.innerText=n;
+      navigator.clipboard.writeText(n);
+    };
+    historyList.appendChild(d);
+  });
+}
+
+function clearHistory(){
+  if(confirm("Clear history?")){
+    localStorage.removeItem(KEY);
+    loadHistory();
+  }
 }
 
 function clearAll(){
@@ -154,6 +215,20 @@ function clearAll(){
   output.innerText="";
   preview.style.display="none";
 }
+
+function shareChannel(){
+  if(!output.innerText){
+    alert("Pehle notice generate kijiye");
+    return;
+  }
+  // auto copy
+  navigator.clipboard.writeText(output.innerText);
+  // open channel
+  window.open(CHANNEL_URL,"_blank");
+  alert("Notice copy ho gaya hai.\nChannel open ho gaya – paste karke post kar dijiye.");
+}
+
+loadHistory();
 </script>
 
 </body>
