@@ -2,85 +2,328 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>NINEDIGIT Notice Tool</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- PWA -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0f172a">
+<title>NINEDIGIT Notice Generator</title>
 
 <style>
-body{margin:0;font-family:Segoe UI,Arial;background:#0f172a;color:#fff}
-.app{padding:14px}
-h2{text-align:center;font-size:18px;margin:6px 0 12px}
-textarea{width:100%;height:120px;padding:12px;border-radius:10px;border:none}
-.controls{display:flex;gap:10px;margin-top:8px}
-select{flex:1;padding:10px;border-radius:10px;border:none}
-button{width:100%;margin-top:10px;padding:14px;font-size:16px;font-weight:700;border:none;border-radius:10px;background:#22c55e;color:#000}
-.output{margin-top:12px;padding:14px;background:#020617;border-radius:10px;white-space:pre-wrap;line-height:1.6}
-.footer{text-align:center;margin-top:8px;font-size:12px;opacity:.7}
+body{
+  margin:0;
+  font-family: Arial, sans-serif;
+  background:#0f172a;
+  color:#fff;
+}
+header{
+  background:#020617;
+  padding:14px;
+  font-size:20px;
+  text-align:center;
+  font-weight:bold;
+}
+.container{ padding:15px; }
+
+textarea,input,select{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  font-size:15px;
+  margin-top:8px;
+}
+
+button{
+  margin-top:8px;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  font-size:14px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.btn-green{ background:#22c55e; }
+.btn-blue{ background:#38bdf8; }
+.btn-red{ background:#ef4444; }
+.btn-purple{ background:#a855f7; }
+
+.row{
+  display:flex;
+  gap:8px;
+}
+
+.output{
+  margin-top:12px;
+  background:#020617;
+  border-radius:10px;
+  padding:12px;
+  white-space:pre-line;
+}
+
+/* Preview */
+.preview{
+  margin-top:12px;
+  display:none;
+  gap:10px;
+}
+.preview-box{
+  flex:1;
+  background:#020617;
+  border-radius:10px;
+  padding:10px;
+  font-size:14px;
+  white-space:pre-line;
+}
+.preview-title{
+  font-weight:bold;
+  margin-bottom:6px;
+  opacity:.8;
+}
+
+/* History */
+.history{
+  margin-top:15px;
+}
+.history-item{
+  background:#020617;
+  padding:10px;
+  border-radius:8px;
+  margin-bottom:6px;
+  font-size:14px;
+  cursor:pointer;
+}
+
+.footer{
+  text-align:center;
+  opacity:.7;
+  margin-top:10px;
+  font-size:13px;
+}
 </style>
 </head>
 
 <body>
-<div class="app">
-<h2>📢 NINEDIGIT Notice Generator</h2>
 
-<textarea id="input" placeholder="Bas normal likhiye..."></textarea>
+<header id="title">📢 NINEDIGIT Notice Generator</header>
 
-<div class="controls">
-<select id="type">
-<option value="alert">🚨 Alert</option>
-<option value="resume">✅ Service Resumed</option>
+<div class="container">
+
+<!-- Language -->
+<select id="langSwitch" onchange="switchLang()">
+  <option value="en">🌐 English</option>
+  <option value="hi">🌐 Hindi</option>
+  <option value="hinglish">🌐 Hinglish</option>
 </select>
-<select id="length">
-<option value="short">Short</option>
-<option value="detailed">Detailed</option>
-</select>
+
+<textarea id="noticeInput" placeholder="Type notice here..."></textarea>
+
+<!-- Rewrite Controls -->
+<div class="row">
+  <select id="rewriteTone">
+    <option value="strict">🧠 Strict</option>
+    <option value="polite">🙏 Polite</option>
+    <option value="friendly">😊 Friendly</option>
+  </select>
+  <button class="btn-purple" onclick="showRewritePreview()">✨ Rewrite Preview</button>
 </div>
 
-<button onclick="generate()">Format & Copy</button>
-<div class="output" id="output"></div>
-<div class="footer">Text-only | WhatsApp Channel Ready</div>
+<!-- Preview -->
+<div class="preview" id="previewBox">
+  <div class="preview-box">
+    <div class="preview-title">Before</div>
+    <div id="beforeText"></div>
+  </div>
+  <div class="preview-box">
+    <div class="preview-title">After</div>
+    <div id="afterText"></div>
+  </div>
+</div>
+
+<div class="row" id="previewActions" style="display:none">
+  <button class="btn-green" onclick="applyRewrite()">✔ Apply Rewrite</button>
+  <button class="btn-red" onclick="cancelRewrite()">❌ Cancel</button>
+</div>
+
+<!-- Notice Type -->
+<select id="noticeType">
+  <option value="alert">🚨 Alert</option>
+  <option value="resume">▶ Service Resume</option>
+  <option value="info">ℹ️ Info</option>
+  <option value="happy">😊 Positive</option>
+  <option value="request">🙏 Request</option>
+  <option value="sorry">😔 Apology</option>
+  <option value="warning">⚠️ Warning</option>
+</select>
+
+<button class="btn-green" onclick="generateNotice()">Format • Copy • Save</button>
+<button class="btn-blue" onclick="shareWhatsApp()">📤 WhatsApp</button>
+<button class="btn-red" onclick="clearAllData()">🧹 Clear All</button>
+
+<div class="output" id="outputBox"></div>
+
+<!-- History -->
+<div class="history">
+<h3>🕘 Notice History</h3>
+<input type="text" id="searchBox" placeholder="🔍 Search history..." oninput="loadHistory()">
+<button class="btn-red" onclick="clearHistory()">🗑️ Clear History</button>
+<div id="historyList"></div>
+</div>
+
+<div class="footer">AI-Style Rewrite • Preview Compare • WhatsApp Ready</div>
 </div>
 
 <script>
-function detectService(t){
-t=t.toLowerCase();
-if(t.includes("puc")) return {c:"DL SERVICES",n:"PUC (Pollution Under Control)"};
-if(t.includes("dl")) return {c:"DL SERVICES",n:"Driving Licence"};
-if(t.includes("rc")) return {c:"VEHICLE SERVICES",n:"Registration Certificate"};
-if(t.includes("voter")) return {c:"VOTER SERVICES",n:"Voter ID / EPIC"};
-if(t.includes("aadhaar")) return {c:"AADHAAR SERVICES",n:"Aadhaar"};
-if(t.includes("pan")) return {c:"PAN SERVICES",n:"PAN Card"};
-return {c:"GENERAL SERVICES",n:"Service"};
+const historyKey="ninedigit_notice_history";
+let currentLang="en";
+let rewrittenText="";
+
+// -------- LANGUAGE LABELS --------
+const labels={
+en:{
+title:"📢 NINEDIGIT Notice Generator",
+placeholder:"Type notice here...",
+heading:"OFFICIAL NOTICE",
+dept:"DL SERVICES – PUC (Pollution Under Control)",
+admin:"Admin | Official Channel – NINEDIGIT"
+},
+hi:{
+title:"📢 नाइनडिजिट नोटिस जनरेटर",
+placeholder:"यहाँ नोटिस लिखें...",
+heading:"आधिकारिक सूचना",
+dept:"डीएल सेवाएँ – पीयूसी",
+admin:"एडमिन | आधिकारिक चैनल – NINEDIGIT"
+},
+hinglish:{
+title:"📢 NINEDIGIT Notice Generator",
+placeholder:"Yahan notice ka text likhiye...",
+heading:"OFFICIAL NOTICE",
+dept:"DL Services – PUC (Pollution Under Control)",
+admin:"Admin | Official Channel – NINEDIGIT"
+}
+};
+
+function switchLang(){
+currentLang=langSwitch.value;
+title.innerText=labels[currentLang].title;
+noticeInput.placeholder=labels[currentLang].placeholder;
 }
 
-function generate(){
-let raw=input.value.trim(); if(!raw) return;
-let svc=detectService(raw);
-let type=document.getElementById("type").value;
-let len=document.getElementById("length").value;
+// -------- AI-STYLE REWRITE (RULE-BASED) --------
+function rewriteText(text,tone){
+let t=text;
 
-let head=type==="alert"?"🚨 OFFICIAL NOTICE":"✅ SERVICE RESUMED NOTICE";
-let body=type==="alert"
-?(len==="short"
-?`• ${svc.n} service temporary down hai.\n  Kindly wait kijiye, service resume hote hi available ho jayega.`
-:`• ${svc.n} service asthayi roop se uplabdh nahi hai.\n• Technical issue ke karan delay ho raha hai.\n• Resume hone par update diya jayega.`)
-:(len==="short"
-?`• ${svc.n} service dobara start ho chuki hai.\n  Ab users apply kar sakte hain.`
-:`• ${svc.n} service resume ho chuki hai.\n• Normal roop se use ki ja sakti hai.\n• Thodi delay possible hai.`);
-
-let d=new Date().toLocaleDateString("en-GB");
-let out=`${head}\n${svc.c} – ${svc.n}\n\n${body}\n\nDate: ${d}\n— Admin | Official Channel – NINEDIGIT`;
-output.innerText=out;
-navigator.clipboard.writeText(out);
+if(tone==="strict"){
+t="Kindly note that "+t.replace("milega","उपलब्ध होगा").replace("abhi","फिलहाल");
+}
+if(tone==="polite"){
+t="Aapse nivedan hai ki dhyan dein: "+t;
+}
+if(tone==="friendly"){
+t="Jankari ke liye bataya ja raha hai: "+t;
+}
+return t;
 }
 
-// Service worker register
-if('serviceWorker' in navigator){
-navigator.serviceWorker.register('service-worker.js');
+function showRewritePreview(){
+const original=noticeInput.value.trim();
+if(!original){alert("Text likhiye");return;}
+
+const tone=rewriteTone.value;
+rewrittenText=rewriteText(original,tone);
+
+beforeText.innerText=original;
+afterText.innerText=rewrittenText;
+
+previewBox.style.display="flex";
+previewActions.style.display="flex";
 }
+
+function applyRewrite(){
+noticeInput.value=rewrittenText;
+hidePreview();
+}
+
+function cancelRewrite(){
+hidePreview();
+}
+
+function hidePreview(){
+previewBox.style.display="none";
+previewActions.style.display="none";
+}
+
+// -------- NOTICE GENERATION --------
+function getIcon(t){
+return{
+alert:"🚨",resume:"▶",info:"ℹ️",
+happy:"😊",request:"🙏",sorry:"😔",warning:"⚠️"
+}[t];
+}
+
+function generateNotice(){
+const text=noticeInput.value.trim();
+if(!text){alert("Notice text required");return;}
+
+const L=labels[currentLang];
+const icon=getIcon(noticeType.value);
+const date=new Date().toLocaleDateString("en-GB");
+
+const notice=`
+${icon} ${L.heading}
+
+${L.dept}
+
+• ${text}
+
+Date: ${date}
+— ${L.admin}
+`.trim();
+
+outputBox.innerText=notice;
+navigator.clipboard.writeText(notice);
+saveHistory(notice);
+loadHistory();
+}
+
+// -------- HISTORY --------
+function saveHistory(n){
+let h=JSON.parse(localStorage.getItem(historyKey))||[];
+h.unshift(n); h=h.slice(0,20);
+localStorage.setItem(historyKey,JSON.stringify(h));
+}
+function loadHistory(){
+const q=searchBox.value.toLowerCase();
+const h=JSON.parse(localStorage.getItem(historyKey))||[];
+historyList.innerHTML="";
+h.filter(x=>x.toLowerCase().includes(q)).forEach(n=>{
+let d=document.createElement("div");
+d.className="history-item";
+d.innerText=n.split("\n")[0]+" ...";
+d.onclick=()=>{
+outputBox.innerText=n;
+navigator.clipboard.writeText(n);
+};
+historyList.appendChild(d);
+});
+}
+function clearHistory(){
+if(confirm("Clear history?")){
+localStorage.removeItem(historyKey);
+loadHistory();
+}
+}
+function clearAllData(){
+if(confirm("Clear ALL data?")){
+localStorage.clear();
+noticeInput.value="";
+outputBox.innerText="";
+loadHistory();
+}
+}
+function shareWhatsApp(){
+if(!outputBox.innerText){alert("Generate notice first");return;}
+window.open("https://wa.me/?text="+encodeURIComponent(outputBox.innerText));
+}
+
+loadHistory();
 </script>
+
 </body>
 </html>
