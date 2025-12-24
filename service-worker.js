@@ -1,5 +1,5 @@
 // 🔄 CACHE VERSION (sirf yeh badalte rehna)
-const CACHE_NAME = 'ninedigit-cache-v3';
+const CACHE_NAME = 'ninedigit-cache-v4';
 
 const FILES = [
   './',
