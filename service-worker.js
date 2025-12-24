@@ -1,4 +1,4 @@
-const CACHE="ninedigit-cache-v2";
+const CACHE_NAME = 'ninedigit-cache-v2';
 const FILES=["./","./index.html","./manifest.json"];
 
 self.addEventListener("install",e=>{
