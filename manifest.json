@@ -1,6 +1,6 @@
 {
-  "name": "NINEDIGIT Notice App",
-  "short_name": "Notice App",
+  "name": "NINEDIGIT Notice Generator",
+  "short_name": "Notice",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#020617",
