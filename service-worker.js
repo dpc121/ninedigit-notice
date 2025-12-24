@@ -1,12 +1,43 @@
-const CACHE_NAME = 'ninedigit-cache-v2';
-const FILES=["./","./index.html","./manifest.json"];
+// 🔄 CACHE VERSION (sirf yeh badalte rehna)
+const CACHE_NAME = 'ninedigit-cache-v3';
 
-self.addEventListener("install",e=>{
-e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)));
+const FILES = [
+  './',
+  './index.html',
+  './manifest.json'
+];
+
+// 📦 INSTALL
+self.addEventListener('install', event => {
+  self.skipWaiting(); // 🔥 auto activate
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll(FILES);
+    })
+  );
 });
 
-self.addEventListener("fetch",e=>{
-e.respondWith(
-caches.match(e.request).then(r=>r||fetch(e.request))
-);
+// ♻ ACTIVATE (old cache delete)
+self.addEventListener('activate', event => {
+  self.clients.claim(); // 🔥 control immediately
+  event.waitUntil(
+    caches.keys().then(keys => {
+      return Promise.all(
+        keys.map(key => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      );
+    })
+  );
+});
+
+// 🌐 FETCH
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request).then(res => {
+      return res || fetch(event.request);
+    })
+  );
 });
