@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>NINEDIGIT Notice Generator</title>
 
 <!-- PWA -->
@@ -16,7 +16,7 @@
 *{box-sizing:border-box}
 body{
   margin:0;
-  font-family:system-ui,Arial;
+  font-family:system-ui,Arial,sans-serif;
   background:#0f172a;
   color:#fff;
 }
@@ -25,10 +25,11 @@ header{
   padding:14px;
   text-align:center;
   font-weight:700;
+  font-size:18px;
 }
 .container{
   padding:12px;
-  max-width:650px;
+  max-width:700px;
   margin:auto;
 }
 textarea,select,input{
@@ -39,7 +40,7 @@ textarea,select,input{
   font-size:16px;
   margin-top:10px;
 }
-textarea{min-height:120px}
+textarea{min-height:140px}
 button{
   width:100%;
   padding:14px;
@@ -48,6 +49,7 @@ button{
   font-size:16px;
   font-weight:700;
   margin-top:10px;
+  cursor:pointer;
 }
 .row{display:flex;gap:8px}
 .row>*{flex:1}
@@ -63,6 +65,7 @@ button{
   padding:14px;
   margin-top:14px;
   white-space:pre-line;
+  font-size:15px;
 }
 
 .preview{display:none;gap:10px;margin-top:14px}
@@ -70,9 +73,10 @@ button{
   background:#020617;
   border-radius:14px;
   padding:12px;
+  font-size:14px;
 }
 
-.history{margin-top:16px}
+.history{margin-top:18px}
 .history-item{
   background:#020617;
   padding:10px;
@@ -86,7 +90,7 @@ button{
   text-align:center;
   opacity:.6;
   font-size:12px;
-  margin:12px 0;
+  margin:14px 0;
 }
 </style>
 </head>
@@ -96,6 +100,15 @@ button{
 <header>📢 NINEDIGIT Notice Generator</header>
 
 <div class="container">
+
+<!-- Preset Templates -->
+<select id="templateSelect" onchange="applyTemplate()">
+  <option value="">📋 Select Preset Template</option>
+  <option value="payment">💳 Payment Instruction</option>
+  <option value="apology">😔 Apology / Sorry</option>
+  <option value="resume">▶ Service Resume</option>
+  <option value="alert">🚨 Alert</option>
+</select>
 
 <textarea id="noticeInput" placeholder="Yahan notice likhiye..."></textarea>
 
@@ -139,97 +152,91 @@ button{
 <div id="historyList"></div>
 </div>
 
-<div class="footer">WhatsApp Channel Ready • Installable PWA</div>
+<div class="footer">
+WhatsApp Channel Ready • Emoji Smart • Installable PWA
+</div>
+
 </div>
 
 <script>
-/* PWA safe register */
+/* PWA register */
 if("serviceWorker" in navigator){
   navigator.serviceWorker.register("sw.js").then(r=>r.update());
 }
 
-const KEY="ninedigit_history";
+const HISTORY_KEY="ninedigit_history";
 const CHANNEL_URL="https://whatsapp.com/channel/0029Vaz55kDLo4hcKwcuqi0b";
 
-function icon(t){
-  return {
-    alert:"🚨",resume:"▶",info:"ℹ️",happy:"😊",
-    request:"🙏",sorry:"😔",warning:"⚠️"
-  }[t];
+/* ---------- Emoji Engine ---------- */
+function isHindi(text){
+  return /[\u0900-\u097F]/.test(text);
 }
 
-function rewritePreview(){
-  const t=noticeInput.value.trim();
-  if(!t) return alert("Text likhiye");
-  let r=t;
-  const tone=rewriteTone.value;
-  if(tone==="strict") r="Kindly note that "+t;
-  if(tone==="polite") r="Aapse nivedan hai: "+t;
-  if(tone==="friendly") r="Jankari ke liye: "+t;
-  preview.style.display="flex";
-  beforeBox.innerText="Before:\n"+t;
-  afterBox.innerText="After:\n"+r;
-}
+function beautifyTextV2(raw){
+  const lines = raw.split("\n").map(l=>l.trim()).filter(Boolean);
+  let out=[];
 
-function generate(){
-  const t=noticeInput.value.trim();
-  if(!t) return;
-  const msg=`${icon(noticeType.value)} OFFICIAL NOTICE\n\n• ${t}\n\n— Admin | NINEDIGIT`;
-  output.innerText=msg;
-  navigator.clipboard.writeText(msg);
-  save(msg);
-  loadHistory();
-}
+  lines.forEach((line,i)=>{
+    const hi=isHindi(line);
 
-function save(m){
-  let h=JSON.parse(localStorage.getItem(KEY))||[];
-  h.unshift(m); h=h.slice(0,20);
-  localStorage.setItem(KEY,JSON.stringify(h));
-}
-
-function loadHistory(){
-  const q=search.value.toLowerCase();
-  const h=JSON.parse(localStorage.getItem(KEY))||[];
-  historyList.innerHTML="";
-  h.filter(x=>x.toLowerCase().includes(q)).forEach(n=>{
-    let d=document.createElement("div");
-    d.className="history-item";
-    d.innerText=n.split("\n")[0]+" ...";
-    d.onclick=()=>{
-      output.innerText=n;
-      navigator.clipboard.writeText(n);
-    };
-    historyList.appendChild(d);
+    if(i===0){
+      out.push(hi
+        ? `🔥 *${line.toUpperCase()}* 🔥`
+        : `⭐ *${line.toUpperCase()}* ⭐`);
+    }
+    else if(/₹|rs|only|price/i.test(line)){
+      out.push(hi?`💰 ${line}`:`💲 ${line}`);
+    }
+    else if(/am|pm|baje|time|hours/i.test(line)){
+      out.push(`⏰ ${line}`);
+    }
+    else if(/phonepe|gpay|paytm|amazon/i.test(line)){
+      out.push(`💳 ${line}`);
+    }
+    else if(/no |nahi|not |❌/i.test(line)){
+      out.push(`❌ ${line}`);
+    }
+    else if(/verified|original|safe|secure|trusted|approval/i.test(line)){
+      out.push(`✅ ${line}`);
+    }
+    else{
+      out.push(hi?`👉 ${line}`:`🔹 ${line}`);
+    }
   });
+
+  return out.join("\n");
 }
 
-function clearHistory(){
-  if(confirm("Clear history?")){
-    localStorage.removeItem(KEY);
-    loadHistory();
+/* ---------- Preset Templates ---------- */
+function applyTemplate(){
+  const t=templateSelect.value;
+
+  if(t==="payment"){
+noticeInput.value=
+`Payment Instruction (Mandatory)
+
+Payment sirf in apps se karein:
+PhonePe
+Google Pay
+Paytm
+Amazon Pay
+
+Kisi aur app se payment na karein`;
   }
-}
 
-function clearAll(){
-  noticeInput.value="";
-  output.innerText="";
-  preview.style.display="none";
-}
+  if(t==="apology"){
+noticeInput.value=
+`Dear Users
 
-function shareChannel(){
-  if(!output.innerText){
-    alert("Pehle notice generate kijiye");
-    return;
+Pichhle kuch din se service delay ke liye hum sincerely maafi chahte hain
+
+Aaj se sabhi pending kaam solve kiye ja rahe hain
+
+Aapke cooperation ke liye dhanyavaad`;
   }
-  // auto copy
-  navigator.clipboard.writeText(output.innerText);
-  // open channel
-  window.open(CHANNEL_URL,"_blank");
-  alert("Notice copy ho gaya hai.\nChannel open ho gaya – paste karke post kar dijiye.");
-}
 
-loadHistory();
-</script>
+  if(t==="resume"){
+noticeInput.value=
+`Service Resume Update
 
-</body>
-</html>
+Aaj se sabhi services resume
