@@ -29,7 +29,7 @@ header{
 }
 .container{
   padding:12px;
-  max-width:700px;
+  max-width:720px;
   margin:auto;
 }
 textarea,select,input{
@@ -102,7 +102,7 @@ button{
 <div class="container">
 
 <!-- Preset Templates -->
-<select id="templateSelect" onchange="applyTemplate()">
+<select id="templateSelect">
   <option value="">📋 Select Preset Template</option>
   <option value="payment">💳 Payment Instruction</option>
   <option value="apology">😔 Apology / Sorry</option>
@@ -112,16 +112,6 @@ button{
 
 <textarea id="noticeInput" placeholder="Yahan notice likhiye..."></textarea>
 
-<select id="noticeType">
-  <option value="alert">🚨 Alert</option>
-  <option value="resume">▶ Service Resume</option>
-  <option value="info">ℹ️ Info</option>
-  <option value="happy">😊 Positive</option>
-  <option value="request">🙏 Request</option>
-  <option value="sorry">😔 Apology</option>
-  <option value="warning">⚠️ Warning</option>
-</select>
-
 <div class="row">
 <select id="rewriteTone">
   <option value="strict">🧠 Strict</option>
@@ -129,11 +119,6 @@ button{
   <option value="friendly">😊 Friendly</option>
 </select>
 <button class="btn-purple" onclick="rewritePreview()">✨ Rewrite Preview</button>
-</div>
-
-<div class="preview" id="preview">
-  <div class="preview-box" id="beforeBox"></div>
-  <div class="preview-box" id="afterBox"></div>
 </div>
 
 <button class="btn-green" onclick="generate()">Format • Copy • Save</button>
@@ -153,63 +138,26 @@ button{
 </div>
 
 <div class="footer">
-WhatsApp Channel Ready • Emoji Smart • Installable PWA
+Emoji Smart • Hindi / English • WhatsApp Channel Ready • PWA
 </div>
 
 </div>
 
 <script>
-/* PWA register */
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("sw.js").then(r=>r.update());
-}
+/* ---------- ELEMENTS ---------- */
+const noticeInput = document.getElementById("noticeInput");
+const output = document.getElementById("output");
+const historyList = document.getElementById("historyList");
+const search = document.getElementById("search");
+const templateSelect = document.getElementById("templateSelect");
+const rewriteTone = document.getElementById("rewriteTone");
 
-const HISTORY_KEY="ninedigit_history";
-const CHANNEL_URL="https://whatsapp.com/channel/0029Vaz55kDLo4hcKwcuqi0b";
+const HISTORY_KEY = "ninedigit_history";
+const CHANNEL_URL = "https://whatsapp.com/channel/0029Vaz55kDLo4hcKwcuqi0b";
 
-/* ---------- Emoji Engine ---------- */
-function isHindi(text){
-  return /[\u0900-\u097F]/.test(text);
-}
-
-function beautifyTextV2(raw){
-  const lines = raw.split("\n").map(l=>l.trim()).filter(Boolean);
-  let out=[];
-
-  lines.forEach((line,i)=>{
-    const hi=isHindi(line);
-
-    if(i===0){
-      out.push(hi
-        ? `🔥 *${line.toUpperCase()}* 🔥`
-        : `⭐ *${line.toUpperCase()}* ⭐`);
-    }
-    else if(/₹|rs|only|price/i.test(line)){
-      out.push(hi?`💰 ${line}`:`💲 ${line}`);
-    }
-    else if(/am|pm|baje|time|hours/i.test(line)){
-      out.push(`⏰ ${line}`);
-    }
-    else if(/phonepe|gpay|paytm|amazon/i.test(line)){
-      out.push(`💳 ${line}`);
-    }
-    else if(/no |nahi|not |❌/i.test(line)){
-      out.push(`❌ ${line}`);
-    }
-    else if(/verified|original|safe|secure|trusted|approval/i.test(line)){
-      out.push(`✅ ${line}`);
-    }
-    else{
-      out.push(hi?`👉 ${line}`:`🔹 ${line}`);
-    }
-  });
-
-  return out.join("\n");
-}
-
-/* ---------- Preset Templates ---------- */
-function applyTemplate(){
-  const t=templateSelect.value;
+/* ---------- TEMPLATE APPLY ---------- */
+templateSelect.addEventListener("change",()=>{
+  const t = templateSelect.value;
 
   if(t==="payment"){
 noticeInput.value=
@@ -239,4 +187,141 @@ Aapke cooperation ke liye dhanyavaad`;
 noticeInput.value=
 `Service Resume Update
 
-Aaj se sabhi services resume
+Aaj se sabhi services resume ho chuki hain
+
+Sabhi pending works fast process kiye ja rahe hain
+
+Aap bina tension apply kar sakte hain`;
+  }
+
+  if(t==="alert"){
+noticeInput.value=
+`Important Alert
+
+Fake calls aur fake payment requests se savdhan rahein
+
+Sirf official channel se hi information lein`;
+  }
+});
+
+/* ---------- EMOJI ENGINE ---------- */
+function isHindi(text){
+  return /[\u0900-\u097F]/.test(text);
+}
+
+function beautifyText(raw){
+  const lines = raw.split("\n").map(l=>l.trim()).filter(Boolean);
+  let out=[];
+
+  lines.forEach((line,i)=>{
+    const hi=isHindi(line);
+
+    if(i===0){
+      out.push(hi?`🔥 *${line.toUpperCase()}* 🔥`:`⭐ *${line.toUpperCase()}* ⭐`);
+    }
+    else if(/₹|rs|only|price/i.test(line)){
+      out.push(hi?`💰 ${line}`:`💲 ${line}`);
+    }
+    else if(/am|pm|baje|time|hours/i.test(line)){
+      out.push(`⏰ ${line}`);
+    }
+    else if(/phonepe|gpay|paytm|amazon/i.test(line)){
+      out.push(`💳 ${line}`);
+    }
+    else if(/no |nahi|not /i.test(line)){
+      out.push(`❌ ${line}`);
+    }
+    else if(/verified|original|safe|secure|trusted|approval/i.test(line)){
+      out.push(`✅ ${line}`);
+    }
+    else{
+      out.push(hi?`👉 ${line}`:`🔹 ${line}`);
+    }
+  });
+
+  return out.join("\n");
+}
+
+/* ---------- REWRITE PREVIEW ---------- */
+function rewritePreview(){
+  const t=noticeInput.value.trim();
+  if(!t){alert("Text likhiye");return;}
+  let r=t;
+  if(rewriteTone.value==="strict") r="Kindly note that "+t;
+  if(rewriteTone.value==="polite") r="Aapse nivedan hai: "+t;
+  if(rewriteTone.value==="friendly") r="Jankari ke liye: "+t;
+  noticeInput.value=r;
+}
+
+/* ---------- GENERATE ---------- */
+function generate(){
+  const t=noticeInput.value.trim();
+  if(!t){alert("Pehle notice likhiye");return;}
+
+  const msg =
+`📢 *OFFICIAL NOTICE*
+
+${beautifyText(t)}
+
+━━━━━━━━━━━━━━
+— Admin | NINEDIGIT`;
+
+  output.innerText=msg;
+  navigator.clipboard.writeText(msg);
+  saveHistory(msg);
+  loadHistory();
+}
+
+/* ---------- HISTORY ---------- */
+function saveHistory(m){
+  let h=JSON.parse(localStorage.getItem(HISTORY_KEY))||[];
+  h.unshift(m);
+  h=h.slice(0,20);
+  localStorage.setItem(HISTORY_KEY,JSON.stringify(h));
+}
+
+function loadHistory(){
+  const q=search.value.toLowerCase();
+  const h=JSON.parse(localStorage.getItem(HISTORY_KEY))||[];
+  historyList.innerHTML="";
+  h.filter(x=>x.toLowerCase().includes(q)).forEach(n=>{
+    const d=document.createElement("div");
+    d.className="history-item";
+    d.innerText=n.split("\n")[0]+" ...";
+    d.onclick=()=>{
+      output.innerText=n;
+      navigator.clipboard.writeText(n);
+    };
+    historyList.appendChild(d);
+  });
+}
+
+function clearHistory(){
+  if(confirm("Clear history?")){
+    localStorage.removeItem(HISTORY_KEY);
+    loadHistory();
+  }
+}
+
+function clearAll(){
+  noticeInput.value="";
+  output.innerText="";
+}
+
+/* ---------- WHATSAPP CHANNEL ---------- */
+function shareChannel(){
+  if(!output.innerText){
+    alert("Pehle notice generate kijiye");
+    return;
+  }
+  navigator.clipboard.writeText(output.innerText);
+  window.open(CHANNEL_URL,"_blank");
+  alert("Notice copy ho gaya.\nChannel open ho gaya – paste karke post karein.");
+}
+
+/* ---------- INIT ---------- */
+loadHistory();
+</script>
+
+</body>
+</html>
