@@ -3,20 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>NINEDIGIT Notice Generator</title>
 
-<!-- PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <style>
 *{box-sizing:border-box}
 body{
   margin:0;
-  font-family:system-ui,Arial,sans-serif;
+  font-family:system-ui,Arial;
   background:#0f172a;
   color:#fff;
 }
@@ -25,14 +22,13 @@ header{
   padding:14px;
   text-align:center;
   font-weight:700;
-  font-size:18px;
 }
 .container{
   padding:12px;
   max-width:720px;
   margin:auto;
 }
-textarea,select,input{
+textarea,select,input,button{
   width:100%;
   padding:14px;
   border-radius:14px;
@@ -41,16 +37,7 @@ textarea,select,input{
   margin-top:10px;
 }
 textarea{min-height:140px}
-button{
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:14px;
-  font-size:16px;
-  font-weight:700;
-  margin-top:10px;
-  cursor:pointer;
-}
+button{font-weight:700;cursor:pointer}
 .row{display:flex;gap:8px}
 .row>*{flex:1}
 
@@ -65,33 +52,15 @@ button{
   padding:14px;
   margin-top:14px;
   white-space:pre-line;
-  font-size:15px;
 }
-
-.preview{display:none;gap:10px;margin-top:14px}
-.preview-box{
-  background:#020617;
-  border-radius:14px;
-  padding:12px;
-  font-size:14px;
-}
-
-.history{margin-top:18px}
 .history-item{
   background:#020617;
   padding:10px;
   border-radius:10px;
-  margin-bottom:6px;
-  font-size:14px;
+  margin-top:6px;
   cursor:pointer;
 }
-
-.footer{
-  text-align:center;
-  opacity:.6;
-  font-size:12px;
-  margin:14px 0;
-}
+.footer{text-align:center;opacity:.6;font-size:12px;margin:14px}
 </style>
 </head>
 
@@ -101,11 +70,10 @@ button{
 
 <div class="container">
 
-<!-- Preset Templates -->
 <select id="templateSelect">
   <option value="">📋 Select Preset Template</option>
   <option value="payment">💳 Payment Instruction</option>
-  <option value="apology">😔 Apology / Sorry</option>
+  <option value="apology">😔 Apology</option>
   <option value="resume">▶ Service Resume</option>
   <option value="alert">🚨 Alert</option>
 </select>
@@ -113,57 +81,47 @@ button{
 <textarea id="noticeInput" placeholder="Yahan notice likhiye..."></textarea>
 
 <div class="row">
-<select id="rewriteTone">
-  <option value="strict">🧠 Strict</option>
-  <option value="polite">🙏 Polite</option>
-  <option value="friendly">😊 Friendly</option>
-</select>
-<button class="btn-purple" onclick="rewritePreview()">✨ Rewrite Preview</button>
+  <select id="rewriteTone">
+    <option value="strict">🧠 Strict</option>
+    <option value="polite">🙏 Polite</option>
+    <option value="friendly">😊 Friendly</option>
+  </select>
+  <button id="rewriteBtn" class="btn-purple">✨ Rewrite</button>
 </div>
 
-<button class="btn-green" onclick="generate()">Format • Copy • Save</button>
+<button id="generateBtn" class="btn-green">Format • Copy • Save</button>
 
 <div class="row">
-<button class="btn-blue" onclick="shareChannel()">📤 WhatsApp Channel</button>
-<button class="btn-red" onclick="clearAll()">🧹 Clear All</button>
+  <button id="shareBtn" class="btn-blue">📤 WhatsApp Channel</button>
+  <button id="clearBtn" class="btn-red">🧹 Clear All</button>
 </div>
 
 <div class="output" id="output"></div>
 
-<div class="history">
 <h3>🕘 Notice History</h3>
-<input type="text" id="search" placeholder="🔍 Search history..." oninput="loadHistory()">
-<button class="btn-red" onclick="clearHistory()">🗑️ Clear History</button>
+<input id="search" placeholder="🔍 Search history">
+<button id="clearHistoryBtn" class="btn-red">🗑️ Clear History</button>
 <div id="historyList"></div>
-</div>
 
-<div class="footer">
-Emoji Smart • Hindi / English • WhatsApp Channel Ready • PWA
-</div>
-
+<div class="footer">Emoji Smart • WhatsApp Channel Ready • PWA</div>
 </div>
 
 <script>
-/* ---------- ELEMENTS ---------- */
+/* ELEMENTS */
 const noticeInput = document.getElementById("noticeInput");
 const output = document.getElementById("output");
 const historyList = document.getElementById("historyList");
 const search = document.getElementById("search");
-const templateSelect = document.getElementById("templateSelect");
-const rewriteTone = document.getElementById("rewriteTone");
 
-const HISTORY_KEY = "ninedigit_history";
-const CHANNEL_URL = "https://whatsapp.com/channel/0029Vaz55kDLo4hcKwcuqi0b";
+const HISTORY_KEY="ninedigit_history";
+const CHANNEL_URL="https://whatsapp.com/channel/0029Vaz55kDLo4hcKwcuqi0b";
 
-/* ---------- TEMPLATE APPLY ---------- */
-templateSelect.addEventListener("change",()=>{
-  const t = templateSelect.value;
+/* TEMPLATE */
+templateSelect.onchange=()=>{
+  if(templateSelect.value==="payment"){
+noticeInput.value=`Payment Instruction
 
-  if(t==="payment"){
-noticeInput.value=
-`Payment Instruction (Mandatory)
-
-Payment sirf in apps se karein:
+Payment sirf:
 PhonePe
 Google Pay
 Paytm
@@ -171,156 +129,82 @@ Amazon Pay
 
 Kisi aur app se payment na karein`;
   }
+  if(templateSelect.value==="apology"){
+noticeInput.value=`Dear Users
 
-  if(t==="apology"){
-noticeInput.value=
-`Dear Users
-
-Pichhle kuch din se service delay ke liye hum sincerely maafi chahte hain
-
-Aaj se sabhi pending kaam solve kiye ja rahe hain
-
-Aapke cooperation ke liye dhanyavaad`;
+Delay ke liye hum sincerely sorry hain
+Aaj se sabhi pending kaam clear honge`;
   }
+  if(templateSelect.value==="resume"){
+noticeInput.value=`Service Resume Update
 
-  if(t==="resume"){
-noticeInput.value=
-`Service Resume Update
-
-Aaj se sabhi services resume ho chuki hain
-
-Sabhi pending works fast process kiye ja rahe hain
-
-Aap bina tension apply kar sakte hain`;
+Aaj se sabhi services resume`;
   }
+  if(templateSelect.value==="alert"){
+noticeInput.value=`Important Alert
 
-  if(t==="alert"){
-noticeInput.value=
-`Important Alert
-
-Fake calls aur fake payment requests se savdhan rahein
-
-Sirf official channel se hi information lein`;
+Fake calls se savdhan rahein`;
   }
-});
+};
 
-/* ---------- EMOJI ENGINE ---------- */
-function isHindi(text){
-  return /[\u0900-\u097F]/.test(text);
+/* EMOJI */
+function isHindi(t){return /[\u0900-\u097F]/.test(t)}
+function beautify(raw){
+  return raw.split("\n").filter(Boolean).map((l,i)=>{
+    if(i===0) return isHindi(l)?`🔥 *${l}* 🔥`:`⭐ *${l}* ⭐`;
+    if(/₹|rs|price/i.test(l)) return `💰 ${l}`;
+    if(/am|pm|time/i.test(l)) return `⏰ ${l}`;
+    if(/no |nahi/i.test(l)) return `❌ ${l}`;
+    return isHindi(l)?`👉 ${l}`:`🔹 ${l}`;
+  }).join("\n");
 }
 
-function beautifyText(raw){
-  const lines = raw.split("\n").map(l=>l.trim()).filter(Boolean);
-  let out=[];
+/* REWRITE */
+rewriteBtn.onclick=()=>{
+  if(!noticeInput.value) return;
+  if(rewriteTone.value==="strict") noticeInput.value="Kindly note that "+noticeInput.value;
+  if(rewriteTone.value==="polite") noticeInput.value="Aapse nivedan hai: "+noticeInput.value;
+  if(rewriteTone.value==="friendly") noticeInput.value="Jankari ke liye: "+noticeInput.value;
+};
 
-  lines.forEach((line,i)=>{
-    const hi=isHindi(line);
-
-    if(i===0){
-      out.push(hi?`🔥 *${line.toUpperCase()}* 🔥`:`⭐ *${line.toUpperCase()}* ⭐`);
-    }
-    else if(/₹|rs|only|price/i.test(line)){
-      out.push(hi?`💰 ${line}`:`💲 ${line}`);
-    }
-    else if(/am|pm|baje|time|hours/i.test(line)){
-      out.push(`⏰ ${line}`);
-    }
-    else if(/phonepe|gpay|paytm|amazon/i.test(line)){
-      out.push(`💳 ${line}`);
-    }
-    else if(/no |nahi|not /i.test(line)){
-      out.push(`❌ ${line}`);
-    }
-    else if(/verified|original|safe|secure|trusted|approval/i.test(line)){
-      out.push(`✅ ${line}`);
-    }
-    else{
-      out.push(hi?`👉 ${line}`:`🔹 ${line}`);
-    }
-  });
-
-  return out.join("\n");
-}
-
-/* ---------- REWRITE PREVIEW ---------- */
-function rewritePreview(){
-  const t=noticeInput.value.trim();
-  if(!t){alert("Text likhiye");return;}
-  let r=t;
-  if(rewriteTone.value==="strict") r="Kindly note that "+t;
-  if(rewriteTone.value==="polite") r="Aapse nivedan hai: "+t;
-  if(rewriteTone.value==="friendly") r="Jankari ke liye: "+t;
-  noticeInput.value=r;
-}
-
-/* ---------- GENERATE ---------- */
-function generate(){
-  const t=noticeInput.value.trim();
-  if(!t){alert("Pehle notice likhiye");return;}
-
-  const msg =
-`📢 *OFFICIAL NOTICE*
-
-${beautifyText(t)}
-
-━━━━━━━━━━━━━━
-— Admin | NINEDIGIT`;
-
+/* GENERATE */
+generateBtn.onclick=()=>{
+  if(!noticeInput.value) return alert("Notice likhiye");
+  const msg=`📢 OFFICIAL NOTICE\n\n${beautify(noticeInput.value)}\n\n— NINEDIGIT`;
   output.innerText=msg;
   navigator.clipboard.writeText(msg);
-  saveHistory(msg);
-  loadHistory();
-}
+  save(msg);
+  load();
+};
 
-/* ---------- HISTORY ---------- */
-function saveHistory(m){
+/* HISTORY */
+function save(m){
   let h=JSON.parse(localStorage.getItem(HISTORY_KEY))||[];
-  h.unshift(m);
-  h=h.slice(0,20);
+  h.unshift(m); h=h.slice(0,20);
   localStorage.setItem(HISTORY_KEY,JSON.stringify(h));
 }
-
-function loadHistory(){
-  const q=search.value.toLowerCase();
-  const h=JSON.parse(localStorage.getItem(HISTORY_KEY))||[];
+function load(){
   historyList.innerHTML="";
-  h.filter(x=>x.toLowerCase().includes(q)).forEach(n=>{
+  (JSON.parse(localStorage.getItem(HISTORY_KEY))||[])
+  .filter(x=>x.toLowerCase().includes(search.value.toLowerCase()))
+  .forEach(n=>{
     const d=document.createElement("div");
     d.className="history-item";
-    d.innerText=n.split("\n")[0]+" ...";
-    d.onclick=()=>{
-      output.innerText=n;
-      navigator.clipboard.writeText(n);
-    };
+    d.innerText=n.split("\n")[0];
+    d.onclick=()=>output.innerText=n;
     historyList.appendChild(d);
   });
 }
-
-function clearHistory(){
-  if(confirm("Clear history?")){
-    localStorage.removeItem(HISTORY_KEY);
-    loadHistory();
-  }
-}
-
-function clearAll(){
-  noticeInput.value="";
-  output.innerText="";
-}
-
-/* ---------- WHATSAPP CHANNEL ---------- */
-function shareChannel(){
-  if(!output.innerText){
-    alert("Pehle notice generate kijiye");
-    return;
-  }
+search.oninput=load;
+clearHistoryBtn.onclick=()=>{localStorage.removeItem(HISTORY_KEY);load();}
+clearBtn.onclick=()=>{noticeInput.value="";output.innerText="";}
+shareBtn.onclick=()=>{
+  if(!output.innerText) return;
   navigator.clipboard.writeText(output.innerText);
   window.open(CHANNEL_URL,"_blank");
-  alert("Notice copy ho gaya.\nChannel open ho gaya – paste karke post karein.");
-}
+};
 
-/* ---------- INIT ---------- */
-loadHistory();
+load();
 </script>
 
 </body>
