@@ -1,210 +1,165 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NINEDIGIT Notice Generator</title>
-
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#020617">
-<meta name="apple-mobile-web-app-capable" content="yes">
+<title>NINEDIGIT PRO Notice Generator</title>
 
 <style>
-*{box-sizing:border-box}
 body{
-  margin:0;
-  font-family:system-ui,Arial;
-  background:#0f172a;
-  color:#fff;
+ margin:0;font-family:system-ui,Arial;
+ background:#020617;color:white;
 }
 header{
-  background:#020617;
-  padding:14px;
-  text-align:center;
-  font-weight:700;
+ background:#020617;padding:12px;text-align:center;
+ font-weight:bold;font-size:18px;border-bottom:1px solid #1f2937;
 }
-.container{
-  padding:12px;
-  max-width:720px;
-  margin:auto;
+.container{padding:12px;max-width:720px;margin:auto;}
+textarea,input,select,button{
+ width:100%;padding:12px;margin-top:8px;border-radius:12px;
+ border:none;font-size:15px;background:#0f172a;color:white;
 }
-textarea,select,input,button{
-  width:100%;
-  padding:14px;
-  border-radius:14px;
-  border:none;
-  font-size:16px;
-  margin-top:10px;
-}
-textarea{min-height:140px}
-button{font-weight:700;cursor:pointer}
-.row{display:flex;gap:8px}
-.row>*{flex:1}
-
-.btn-green{background:#22c55e}
-.btn-blue{background:#38bdf8}
-.btn-red{background:#ef4444}
-.btn-purple{background:#a855f7}
-
+button{font-weight:bold;cursor:pointer}
+.green{background:#22c55e}
+.blue{background:#38bdf8}
+.red{background:#ef4444}
 .output{
-  background:#020617;
-  border-radius:14px;
-  padding:14px;
-  margin-top:14px;
-  white-space:pre-line;
+ background:#020617;padding:12px;border-radius:12px;margin-top:10px;
+ white-space:pre-line;border:1px solid #1f2937;
 }
 .history-item{
-  background:#020617;
-  padding:10px;
-  border-radius:10px;
-  margin-top:6px;
-  cursor:pointer;
+ background:#020617;padding:8px;margin-top:5px;border-radius:8px;
+ border:1px solid #1f2937;cursor:pointer;
 }
-.footer{text-align:center;opacity:.6;font-size:12px;margin:14px}
 </style>
 </head>
 
 <body>
 
-<header>📢 NINEDIGIT Notice Generator</header>
+<header>📢 NINEDIGIT PRO NOTICE GENERATOR</header>
 
 <div class="container">
 
-<select id="templateSelect">
-  <option value="">📋 Select Preset Template</option>
-  <option value="payment">💳 Payment Instruction</option>
-  <option value="apology">😔 Apology</option>
-  <option value="resume">▶ Service Resume</option>
-  <option value="alert">🚨 Alert</option>
+<select id="template">
+<option value="">📋 Select Template</option>
+<option value="pay">Payment Notice</option>
+<option value="warn">Warning Alert</option>
+<option value="service">Service Update</option>
 </select>
 
-<textarea id="noticeInput" placeholder="Yahan notice likhiye..."></textarea>
+<textarea id="input" placeholder="Notice yahan likho..."></textarea>
 
-<div class="row">
-  <select id="rewriteTone">
-    <option value="strict">🧠 Strict</option>
-    <option value="polite">🙏 Polite</option>
-    <option value="friendly">😊 Friendly</option>
-  </select>
-  <button id="rewriteBtn" class="btn-purple">✨ Rewrite</button>
-</div>
-
-<button id="generateBtn" class="btn-green">Format • Copy • Save</button>
-
-<div class="row">
-  <button id="shareBtn" class="btn-blue">📤 WhatsApp Channel</button>
-  <button id="clearBtn" class="btn-red">🧹 Clear All</button>
-</div>
+<button id="generate" class="green">Generate Notice</button>
+<button id="share" class="blue">Share WhatsApp</button>
+<button id="clear" class="red">Clear</button>
 
 <div class="output" id="output"></div>
 
-<h3>🕘 Notice History</h3>
-<input id="search" placeholder="🔍 Search history">
-<button id="clearHistoryBtn" class="btn-red">🗑️ Clear History</button>
-<div id="historyList"></div>
+<h3>History</h3>
+<div id="history"></div>
 
-<div class="footer">Emoji Smart • WhatsApp Channel Ready • PWA</div>
 </div>
 
 <script>
-/* ELEMENTS */
-const noticeInput = document.getElementById("noticeInput");
-const output = document.getElementById("output");
-const historyList = document.getElementById("historyList");
-const search = document.getElementById("search");
-
-const HISTORY_KEY="ninedigit_history";
-const CHANNEL_URL="https://whatsapp.com/channel/0029Vaz55kDLo4hcKwcuqi0b";
-
-/* TEMPLATE */
-templateSelect.onchange=()=>{
-  if(templateSelect.value==="payment"){
-noticeInput.value=`Payment Instruction
-
-Payment sirf:
-PhonePe
-Google Pay
-Paytm
-Amazon Pay
-
-Kisi aur app se payment na karein`;
-  }
-  if(templateSelect.value==="apology"){
-noticeInput.value=`Dear Users
-
-Delay ke liye hum sincerely sorry hain
-Aaj se sabhi pending kaam clear honge`;
-  }
-  if(templateSelect.value==="resume"){
-noticeInput.value=`Service Resume Update
-
-Aaj se sabhi services resume`;
-  }
-  if(templateSelect.value==="alert"){
-noticeInput.value=`Important Alert
-
-Fake calls se savdhan rahein`;
-  }
+// ================= TEMPLATES =================
+const templates={
+ pay:`Payment Notice
+Only PhonePe / GPay / Paytm accepted
+49 Rs charges
+Refer bonus 20 Rs`,
+ warn:`⚠️ Important Warning
+Fake calls se savdhan
+Official number se hi baat karein`,
+ service:`Service Update
+Aaj se sabhi services resume`
+};
+template.onchange=e=>{
+ input.value=templates[e.target.value]||"";
 };
 
-/* EMOJI */
-function isHindi(t){return /[\u0900-\u097F]/.test(t)}
-function beautify(raw){
-  return raw.split("\n").filter(Boolean).map((l,i)=>{
-    if(i===0) return isHindi(l)?`🔥 *${l}* 🔥`:`⭐ *${l}* ⭐`;
-    if(/₹|rs|price/i.test(l)) return `💰 ${l}`;
-    if(/am|pm|time/i.test(l)) return `⏰ ${l}`;
-    if(/no |nahi/i.test(l)) return `❌ ${l}`;
-    return isHindi(l)?`👉 ${l}`:`🔹 ${l}`;
-  }).join("\n");
+// ============== 10,000 STYLE EMOJI ENGINE =================
+
+// Category Emoji Packs
+const EMOJI = {
+ title:["🔥","🚀","⚡","⭐","🌟","🎉","💥","✨"],
+ money:["💰","💳","🪙","💵","🏦","📈"],
+ warning:["🚨","⚠️","❗","❌","🔴"],
+ offer:["🎁","🎉","🔥","💯","✨"],
+ general:[
+ "😀","😎","🤩","😍","😜","🤔","😱","🥳","🔥","⚡","✨","💎","📢","📌",
+ "🔔","👉","👇","👍","🙏","💯","🎉","📞","💬","🧠","🚀","🌈","☀️","🌙"
+ ]
+};
+
+// Prevent repeat emoji
+let usedEmoji=[];
+
+function randFrom(arr){
+ let e;
+ do{
+  e = arr[Math.floor(Math.random()*arr.length)];
+ }while(usedEmoji.includes(e));
+ usedEmoji.push(e);
+ if(usedEmoji.length>100) usedEmoji=[]; // reset buffer
+ return e;
 }
 
-/* REWRITE */
-rewriteBtn.onclick=()=>{
-  if(!noticeInput.value) return;
-  if(rewriteTone.value==="strict") noticeInput.value="Kindly note that "+noticeInput.value;
-  if(rewriteTone.value==="polite") noticeInput.value="Aapse nivedan hai: "+noticeInput.value;
-  if(rewriteTone.value==="friendly") noticeInput.value="Jankari ke liye: "+noticeInput.value;
-};
-
-/* GENERATE */
-generateBtn.onclick=()=>{
-  if(!noticeInput.value) return alert("Notice likhiye");
-  const msg=`📢 OFFICIAL NOTICE\n\n${beautify(noticeInput.value)}\n\n— NINEDIGIT`;
-  output.innerText=msg;
-  navigator.clipboard.writeText(msg);
-  save(msg);
-  load();
-};
-
-/* HISTORY */
-function save(m){
-  let h=JSON.parse(localStorage.getItem(HISTORY_KEY))||[];
-  h.unshift(m); h=h.slice(0,20);
-  localStorage.setItem(HISTORY_KEY,JSON.stringify(h));
+// Smart Emoji Selector
+function smartEmoji(line){
+ line=line.toLowerCase();
+ if(/rs|₹|price|charge|pay/.test(line)) return randFrom(EMOJI.money);
+ if(/alert|warning|fake|fraud/.test(line)) return randFrom(EMOJI.warning);
+ if(/offer|bonus|free|gift/.test(line)) return randFrom(EMOJI.offer);
+ return randFrom(EMOJI.general);
 }
-function load(){
-  historyList.innerHTML="";
-  (JSON.parse(localStorage.getItem(HISTORY_KEY))||[])
-  .filter(x=>x.toLowerCase().includes(search.value.toLowerCase()))
-  .forEach(n=>{
-    const d=document.createElement("div");
-    d.className="history-item";
-    d.innerText=n.split("\n")[0];
-    d.onclick=()=>output.innerText=n;
-    historyList.appendChild(d);
-  });
+
+// Beautify Text
+function beautify(text){
+ usedEmoji=[];
+ return text.split("\n").filter(x=>x).map((l,i)=>{
+   if(i==0) return randFrom(EMOJI.title)+" *"+l+"* "+randFrom(EMOJI.title);
+   return smartEmoji(l)+" "+l;
+ }).join("\n");
 }
-search.oninput=load;
-clearHistoryBtn.onclick=()=>{localStorage.removeItem(HISTORY_KEY);load();}
-clearBtn.onclick=()=>{noticeInput.value="";output.innerText="";}
-shareBtn.onclick=()=>{
-  if(!output.innerText) return;
-  navigator.clipboard.writeText(output.innerText);
-  window.open(CHANNEL_URL,"_blank");
+
+// ================= GENERATE =================
+generate.onclick=()=>{
+ if(!input.value) return alert("Notice likho");
+ const msg=`📢 OFFICIAL NOTICE\n\n${beautify(input.value)}\n\n— NINEDIGIT`;
+ output.innerText=msg;
+ navigator.clipboard.writeText(msg);
+ saveHistory(msg);
+ loadHistory();
 };
 
-load();
+// ================= SHARE =================
+share.onclick=()=>{
+ const t=encodeURIComponent(output.innerText);
+ window.open("https://wa.me/?text="+t,"_blank");
+};
+
+// ================= CLEAR =================
+clear.onclick=()=>{
+ input.value="";output.innerText="";
+};
+
+// ================= HISTORY =================
+function saveHistory(m){
+ let h=JSON.parse(localStorage.getItem("hist"))||[];
+ h.unshift(m);h=h.slice(0,20);
+ localStorage.setItem("hist",JSON.stringify(h));
+}
+function loadHistory(){
+ history.innerHTML="";
+ (JSON.parse(localStorage.getItem("hist"))||[]).forEach(n=>{
+  let d=document.createElement("div");
+  d.className="history-item";
+  d.innerText=n.split("\n")[0];
+  d.onclick=()=>output.innerText=n;
+  history.appendChild(d);
+ });
+}
+loadHistory();
 </script>
 
 </body>
